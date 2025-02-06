@@ -127,7 +127,18 @@ class AddAttendanceView extends GetView<HomeController> {
                       labelText: 'Designation',
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  Obx(() => controller.isProcessing.value
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2193b0)),
+                            ),
+                          ),
+                        )
+                      : const SizedBox(height: 8)),
+                  const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
