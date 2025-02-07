@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:attendance_app/app/modules/home/views/add_attendance_view.dart';
 import 'package:attendance_app/app/modules/home/views/employee_details_view.dart';
+import 'package:attendance_app/utils/face_detector_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
@@ -61,84 +62,85 @@ class HomeView extends GetView<HomeController> {
         ),
         body: TabBarView(
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.white, Color(0xFFE0F7FA)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              child: Center(
-                child: Obx(() {
-                  if (controller.isProcessing.value) {
-                    return const CircularProgressIndicator();
-                  }
+            const FaceDetectorView(),
+            // Container(
+            //   decoration: const BoxDecoration(
+            //     gradient: LinearGradient(
+            //       colors: [Colors.white, Color(0xFFE0F7FA)],
+            //       begin: Alignment.topCenter,
+            //       end: Alignment.bottomCenter,
+            //     ),
+            //   ),
+            //   child: Center(
+            //     child: Obx(() {
+            //       if (controller.isProcessing.value) {
+            //         return const CircularProgressIndicator();
+            //       }
 
-                  if (controller.matchedEmployee.value != null) {
-                    Future.delayed(const Duration(seconds: 5), () {
-                      controller.clearMatchedEmployee();
-                    });
+            //       if (controller.matchedEmployee.value != null) {
+            //         Future.delayed(const Duration(seconds: 5), () {
+            //           controller.clearMatchedEmployee();
+            //         });
 
-                    final employee = controller.matchedEmployee.value!;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (employee['imagePath'] != null)
-                          Container(
-                            width: 200,
-                            height: 200,
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              image: DecorationImage(
-                                image: FileImage(File(employee['imagePath'])),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        Text(
-                          employee['name'] ?? 'Unknown',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2193b0),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          employee['designation'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Match Found!',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.green[600],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
+            //         final employee = controller.matchedEmployee.value!;
+            //         return Column(
+            //           mainAxisSize: MainAxisSize.min,
+            //           children: [
+            //             if (employee['imagePath'] != null)
+            //               Container(
+            //                 width: 200,
+            //                 height: 200,
+            //                 margin: const EdgeInsets.only(bottom: 16),
+            //                 decoration: BoxDecoration(
+            //                   borderRadius: BorderRadius.circular(100),
+            //                   image: DecorationImage(
+            //                     image: FileImage(File(employee['imagePath'])),
+            //                     fit: BoxFit.cover,
+            //                   ),
+            //                 ),
+            //               ),
+            //             Text(
+            //               employee['name'] ?? 'Unknown',
+            //               style: const TextStyle(
+            //                 fontSize: 24,
+            //                 fontWeight: FontWeight.bold,
+            //                 color: Color(0xFF2193b0),
+            //               ),
+            //             ),
+            //             const SizedBox(height: 8),
+            //             Text(
+            //               employee['designation'] ?? '',
+            //               style: const TextStyle(
+            //                 fontSize: 18,
+            //                 color: Colors.grey,
+            //               ),
+            //             ),
+            //             const SizedBox(height: 16),
+            //             Text(
+            //               'Match Found!',
+            //               style: TextStyle(
+            //                 fontSize: 16,
+            //                 color: Colors.green[600],
+            //                 fontWeight: FontWeight.bold,
+            //               ),
+            //             ),
+            //           ],
+            //         );
+            //       }
 
-                  return ElevatedButton.icon(
-                    onPressed: controller.scanAndCompareFace,
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Scan Face'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
-                      backgroundColor: const Color(0xFF2193b0),
-                    ),
-                  );
-                }),
-              ),
-            ),
+            //       return ElevatedButton.icon(
+            //         onPressed: controller.scanAndCompareFace,
+            //         icon: const Icon(Icons.camera_alt),
+            //         label: const Text('Scan Face'),
+            //         style: ElevatedButton.styleFrom(
+            //           padding: const EdgeInsets.symmetric(
+            //               horizontal: 32, vertical: 16),
+            //           backgroundColor: const Color(0xFF2193b0),
+            //         ),
+            //       );
+            //     }),
+            //   ),
+            // ),
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(

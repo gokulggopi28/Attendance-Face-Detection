@@ -49,119 +49,124 @@ class HomeController extends GetxController {
   }
 
   Future<bool> detectFace() async {
-    try {
-      isProcessing.value = true;
-      final XFile? image =
-          await imagePicker.pickImage(source: ImageSource.camera);
-      if (image == null) return false;
+  try {
+    isProcessing.value = true;
+    final XFile? image = await imagePicker.pickImage(source: ImageSource.camera);
+    if (image == null) return false;
 
-      final File imageFile = File(image.path);
-      final inputImage = InputImage.fromFile(imageFile);
-      final faces = await faceDetector.processImage(inputImage);
+    final File imageFile = File(image.path);
+    final inputImage = InputImage.fromFile(imageFile);
+    final faces = await faceDetector.processImage(inputImage);
 
-      if (faces.length != 1) {
-        Get.snackbar(
-          'Detection Error',
-          faces.isEmpty
-              ? 'No face detected. Please try again.'
-              : 'Multiple faces detected. Ensure only one person is in frame.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-
-      final Face face = faces.first;
-      if (face.headEulerAngleY != null &&
-          (face.headEulerAngleY! < -10 || face.headEulerAngleY! > 10)) {
-        Get.snackbar(
-          'Detection Error',
-          'Please face the camera directly',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-
-      currentFaceData = extractFaceData(face);
-      currentFaceData!['imagePath'] = imageFile.path;
-      return true;
-    } catch (e) {
-      log('Face detection error: $e');
+    if (faces.length != 1) {
       Get.snackbar(
-        'Error',
-        'Failed to process image. Please try again.',
+        'Detection Error',
+        faces.isEmpty ? 'No face detected. Please try again.' : 'Multiple faces detected. Ensure only one person is in frame.',
         snackPosition: SnackPosition.BOTTOM,
       );
       return false;
-    } finally {
-      isProcessing.value = false;
     }
+
+    final Face face = faces.first;
+    if (face.headEulerAngleY != null && (face.headEulerAngleY! < -10 || face.headEulerAngleY! > 10)) {
+      Get.snackbar(
+        'Detection Error',
+        'Please face the camera directly',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+
+    currentFaceData = extractFaceData(face);
+    currentFaceData!['imagePath'] = imageFile.path;
+
+   
+    log('Scanned Face Data: $currentFaceData');
+
+    return true;
+  } catch (e) {
+    log('Face detection error: $e');
+    Get.snackbar(
+      'Error',
+      'Failed to process image. Please try again.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    return false;
+  } finally {
+    isProcessing.value = false;
   }
+}
 
-  Future<void> scanAndCompareFace() async {
-    try {
-      isProcessing.value = true;
-      matchedEmployee.value = null;
-      currentFaceData = null;
+Future<void> scanAndCompareFace() async {
+  try {
+    isProcessing.value = true;
+    matchedEmployee.value = null;
+    currentFaceData = null;
 
-      final bool faceDetected = await detectFace();
-      if (!faceDetected) {
-        isProcessing.value = false;
-        return;
-      }
+    final bool faceDetected = await detectFace();
+    if (!faceDetected) {
+      isProcessing.value = false;
+      return;
+    }
 
-      double bestMatchScore = 0;
-      Map<dynamic, dynamic>? bestMatch;
+    double bestMatchScore = 0;
+    Map<dynamic, dynamic>? bestMatch;
 
-      for (var employee in attendance) {
-        final storedFaceData = employee['faceData'];
-        if (storedFaceData is Map<String, dynamic>) {
-          final double similarity = compareFaces(
-            currentFaceData!,
-            storedFaceData,
-          );
+    for (var employee in attendance) {
+      final storedFaceData = employee['faceData'];
+      if (storedFaceData is Map<String, dynamic>) {
+        
+        log('Stored Face Data for ${employee['name']}: $storedFaceData');
 
-          log('Comparing with ${employee['name']}: similarity = $similarity');
+        final double similarity = compareFaces(
+          currentFaceData!,
+          storedFaceData,
+        );
 
-          if (similarity > bestMatchScore && similarity > 0.60) { 
-            bestMatchScore = similarity;
-            bestMatch = employee;
-          }
+       
+        log('Comparison Score with ${employee['name']}: $similarity');
+
+        if (similarity > bestMatchScore && similarity > 0.60) { 
+          bestMatchScore = similarity;
+          bestMatch = employee;
         }
       }
+    }
 
-      if (bestMatch != null) {
-        matchedEmployee.value = bestMatch;
-        Get.snackbar(
-          'Match Found!',
-          'Employee: ${bestMatch['name']}',
-          backgroundColor: const Color(0xFF2193b0),
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
-      } else {
-        Get.snackbar(
-          'No Match Found',
-          'No matching employee found in the database',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
-      }
-    } catch (e) {
-      log('Face comparison error: $e');
+    if (bestMatch != null) {
+      matchedEmployee.value = bestMatch;
       Get.snackbar(
-        'Error',
-        'An error occurred while comparing faces',
+        'Match Found!',
+        'Employee: ${bestMatch['name']}',
+        backgroundColor: const Color(0xFF2193b0),
+        colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 2),
       );
-    } finally {
-      isProcessing.value = false;
-      currentFaceData = null;
+    } else {
+      Get.snackbar(
+        'No Match Found',
+        'No matching employee found in the database',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
     }
+  } catch (e) {
+    log('Face comparison error: $e');
+    Get.snackbar(
+      'Error',
+      'An error occurred while comparing faces',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+  } finally {
+    isProcessing.value = false;
+    currentFaceData = null;
   }
+}
+
 
   double compareFaces(Map<String, dynamic> face1, Map<String, dynamic> face2) {
     double similarity = 0;
